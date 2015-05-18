@@ -26,7 +26,7 @@ Design non-goals:
 
 3. Extract the public key to a separate file
   ```
-  openssl genrsa -out private_key.pem 4096
+  openssl rsa -in private_key.pem -pubout -out public_key.pem
   ```
 
 4. Encrypt some data using the public key
