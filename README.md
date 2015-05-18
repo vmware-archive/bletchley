@@ -1,6 +1,7 @@
-#bletchley
+#Bletchley
+[![GoDoc](https://godoc.org/github.com/rosenhouse/bletchley?status.svg)](https://godoc.org/github.com/rosenhouse/bletchley)
 
-Bletchley is a Go library and command-line tool for asymmetric encryption and decryption of small messages.
+Bletchley is a high-level Go library and command-line tool for asymmetric encryption and decryption.
 
 Design goals:
 - Easy to use
