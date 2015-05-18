@@ -37,18 +37,26 @@ type EncryptedMessage struct {
 	EncryptedKey []byte `json:"encrypted_key"`
 }
 
-func PublicKeyFromPEM(keyBytes []byte) (*rsa.PublicKey, error) {
-	pemBlock, _ := pem.Decode(keyBytes)
+func loadAndValidatePEM(rawBytes []byte, expectedType string) ([]byte, error) {
+	pemBlock, _ := pem.Decode(rawBytes)
 	if pemBlock == nil {
 		return nil, fmt.Errorf("No PEM data found.")
 	}
 
-	const expectedType = "PUBLIC KEY"
 	if pemBlock.Type != expectedType {
-		return nil, fmt.Errorf("Expected PEM data type of %q but found %q", expectedType, pemBlock.Type)
+		return nil, fmt.Errorf("Expected PEM data of type %q but instead found %q", expectedType, pemBlock.Type)
 	}
 
-	pub, err := x509.ParsePKIXPublicKey(pemBlock.Bytes)
+	return pemBlock.Bytes, nil
+}
+
+func PublicKeyFromPEM(rawBytes []byte) (*rsa.PublicKey, error) {
+	keyBytes, err := loadAndValidatePEM(rawBytes, "PUBLIC KEY")
+	if err != nil {
+		return nil, err
+	}
+
+	pub, err := x509.ParsePKIXPublicKey(keyBytes)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to parse public key: %s", err)
 	}
@@ -59,18 +67,13 @@ func PublicKeyFromPEM(keyBytes []byte) (*rsa.PublicKey, error) {
 	return rsaPub, nil
 }
 
-func PrivateKeyFromPEM(keyBytes []byte) (*rsa.PrivateKey, error) {
-	pemBlock, _ := pem.Decode(keyBytes)
-	if pemBlock == nil {
-		return nil, fmt.Errorf("No PEM data found.")
+func PrivateKeyFromPEM(rawBytes []byte) (*rsa.PrivateKey, error) {
+	keyBytes, err := loadAndValidatePEM(rawBytes, "RSA PRIVATE KEY")
+	if err != nil {
+		return nil, err
 	}
 
-	const expectedType = "RSA PRIVATE KEY"
-	if pemBlock.Type != expectedType {
-		return nil, fmt.Errorf("Expected PEM data type of %q but found %q", expectedType, pemBlock.Type)
-	}
-
-	priv, err := x509.ParsePKCS1PrivateKey(pemBlock.Bytes)
+	priv, err := x509.ParsePKCS1PrivateKey(keyBytes)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to parse private key: %s", err)
 	}
