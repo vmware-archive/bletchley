@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+
+	"github.com/rosenhouse/bletchley"
 )
 
 const (
@@ -16,12 +18,6 @@ const (
 func Fatalf(msg string) {
 	os.Stderr.WriteString(msg + "\n")
 	os.Exit(1)
-}
-
-type encryptedFormat struct {
-	Ciphertext   []byte `json:"ciphertext"`
-	Nonce        []byte `json:"nonce"`
-	EncryptedKey []byte `json:"encrypted_key"`
 }
 
 func main() {
@@ -35,6 +31,11 @@ func main() {
 	if keyPath == "" {
 		flag.Usage()
 		Fatalf("Specify the path to the key file")
+	}
+
+	keyBytes, err := ioutil.ReadFile(keyPath)
+	if err != nil {
+		Fatalf("Error reading key file: " + err.Error())
 	}
 
 	if operation != operationEncrypt && operation != operationDecrypt {
@@ -53,61 +54,41 @@ func main() {
 
 	outputString := ""
 
+	cipher := bletchley.New()
+
 	if operation == operationEncrypt {
-
-		asymmetricStep, err := loadAsymmetricEncrypter(keyPath)
+		publicKey, err := bletchley.PublicKeyFromPEM(keyBytes)
 		if err != nil {
-			panic(err)
+			Fatalf(err.Error())
 		}
 
-		symmetricStep, err := generateSymmetric()
+		encrypted, err := cipher.Encrypt(publicKey, inputData)
 		if err != nil {
-			panic(err)
+			Fatalf(err.Error())
 		}
 
-		symCiphertext := symmetricStep.encrypt(inputData)
-
-		encryptedKey, err := asymmetricStep.encrypt(symmetricStep.aesKey)
+		outputBytes, err := json.Marshal(encrypted)
 		if err != nil {
-			panic(err)
-		}
-
-		outputBytes, err := json.Marshal(encryptedFormat{
-			Ciphertext:   symCiphertext,
-			EncryptedKey: encryptedKey,
-			Nonce:        symmetricStep.gcmNonce,
-		})
-		if err != nil {
-			panic(err)
+			Fatalf(err.Error())
 		}
 
 		outputString = string(outputBytes)
-	} else if operation == operationDecrypt {
 
-		asymmetricStep, err := loadAsymmetricDecrypter(keyPath)
+	} else if operation == operationDecrypt {
+		privateKey, err := bletchley.PrivateKeyFromPEM(keyBytes)
 		if err != nil {
-			panic(err)
+			Fatalf(err.Error())
 		}
 
-		var enc encryptedFormat
-		err = json.Unmarshal(inputData, &enc)
+		var encrypted bletchley.EncryptedMessage
+		err = json.Unmarshal(inputData, &encrypted)
 		if err != nil {
 			Fatalf("Expected JSON input: " + err.Error())
 		}
 
-		aesKey, err := asymmetricStep.decrypt(enc.EncryptedKey)
+		plaintext, err := cipher.Decrypt(privateKey, encrypted)
 		if err != nil {
-			Fatalf("RSA decryption: " + err.Error())
-		}
-
-		symmetricStep, err := loadSymmetric(aesKey, enc.Nonce)
-		if err != nil {
-			Fatalf("GCM AES setup: " + err.Error())
-		}
-
-		plaintext, err := symmetricStep.decrypt(enc.Ciphertext)
-		if err != nil {
-			Fatalf("GCM AES decryption: " + err.Error())
+			Fatalf("Failed to decrypt: " + err.Error())
 		}
 
 		outputString = string(plaintext)
