@@ -1,10 +1,7 @@
 package main
 
 import (
-	"crypto/aes"
-	"crypto/cipher"
-	"crypto/sha256"
-	"encoding/base64"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -12,8 +9,8 @@ import (
 )
 
 const (
-	OperationEncrypt = "encrypt"
-	OperationDecrypt = "decrypt"
+	operationEncrypt = "encrypt"
+	operationDecrypt = "decrypt"
 )
 
 func Fatalf(msg string) {
@@ -21,23 +18,31 @@ func Fatalf(msg string) {
 	os.Exit(1)
 }
 
-func main() {
-	var password string
+type encryptedFormat struct {
+	Ciphertext   []byte `json:"ciphertext"`
+	Nonce        []byte `json:"nonce"`
+	EncryptedKey []byte `json:"encrypted_key"`
+}
 
-	flag.StringVar(&password, "p", "", "password")
-	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "Usage:\n%s <operation>\n  <operation>: %s or %s\n", os.Args[0], OperationEncrypt, OperationDecrypt)
-		flag.PrintDefaults()
-	}
+func main() {
+	var operation string
+	var keyPath string
+
+	flag.StringVar(&operation, "o", "", fmt.Sprintf("operation: '%s' or '%s'", operationEncrypt, operationDecrypt))
+	flag.StringVar(&keyPath, "k", "", "path to public or private key")
 	flag.Parse()
 
-	if password == "" {
-		Fatalf("password required")
+	if keyPath == "" {
+		Fatalf("Specify the path to the key file")
 	}
 
-	operation := flag.Arg(0)
-	if operation != OperationEncrypt && operation != OperationDecrypt {
-		Fatalf("specify an operation")
+	if operation != operationEncrypt && operation != operationDecrypt {
+		Fatalf(fmt.Sprintf("Expected operation to be either '%s' or '%s'", operationEncrypt, operationDecrypt))
+	}
+
+	stat, _ := os.Stdin.Stat()
+	if (stat.Mode() & os.ModeCharDevice) != 0 {
+		Fatalf("provide input data on stdin")
 	}
 
 	inputData, err := ioutil.ReadAll(os.Stdin)
@@ -47,59 +52,65 @@ func main() {
 
 	outputString := ""
 
-	if operation == OperationEncrypt {
-		symCiphertext, err := encrypt(password, inputData)
+	if operation == operationEncrypt {
+
+		asymmetricStep, err := loadAsymmetricEncrypter(keyPath)
 		if err != nil {
 			panic(err)
 		}
 
-		outputString = base64.StdEncoding.EncodeToString(symCiphertext)
-	}
-
-	if operation == OperationDecrypt {
-		ciphertext := make([]byte, base64.StdEncoding.DecodedLen(len(inputData)))
-		n, err := base64.StdEncoding.Decode(ciphertext, inputData)
+		symmetricStep, err := generateSymmetric()
 		if err != nil {
-			Fatalf("Error during base64 decode of input")
+			panic(err)
 		}
 
-		outputBytes, err := decrypt(password, ciphertext[:n])
+		symCiphertext := symmetricStep.encrypt(inputData)
+
+		encryptedKey, err := asymmetricStep.encrypt(symmetricStep.aesKey)
 		if err != nil {
-			Fatalf(err.Error())
+			panic(err)
+		}
+
+		outputBytes, err := json.Marshal(encryptedFormat{
+			Ciphertext:   symCiphertext,
+			EncryptedKey: encryptedKey,
+			Nonce:        symmetricStep.gcmNonce,
+		})
+		if err != nil {
+			panic(err)
 		}
 
 		outputString = string(outputBytes)
+	} else if operation == operationDecrypt {
+
+		asymmetricStep, err := loadAsymmetricDecrypter(keyPath)
+		if err != nil {
+			panic(err)
+		}
+
+		var enc encryptedFormat
+		err = json.Unmarshal(inputData, &enc)
+		if err != nil {
+			Fatalf("Expected JSON input: " + err.Error())
+		}
+
+		aesKey, err := asymmetricStep.decrypt(enc.EncryptedKey)
+		if err != nil {
+			Fatalf("RSA decryption: " + err.Error())
+		}
+
+		symmetricStep, err := loadSymmetric(aesKey, enc.Nonce)
+		if err != nil {
+			Fatalf("GCM AES setup: " + err.Error())
+		}
+
+		plaintext, err := symmetricStep.decrypt(enc.Ciphertext)
+		if err != nil {
+			Fatalf("GCM AES decryption: " + err.Error())
+		}
+
+		outputString = string(plaintext)
 	}
 
 	fmt.Printf(outputString)
-}
-
-func getStreamCipher(password string) (cipher.AEAD, error) {
-	hashedPassword := sha256.Sum256([]byte(password))
-	aesKey := hashedPassword[:32]
-
-	blockCipher, err := aes.NewCipher(aesKey)
-	if err != nil {
-		return nil, err
-	}
-
-	return cipher.NewGCM(blockCipher)
-}
-
-func encrypt(password string, plaintext []byte) ([]byte, error) {
-	gcmNonce := make([]byte, 12)
-	streamCipher, err := getStreamCipher(password)
-	if err != nil {
-		return []byte{}, err
-	}
-	return streamCipher.Seal(nil, gcmNonce, plaintext, nil), nil
-}
-
-func decrypt(password string, ciphertext []byte) ([]byte, error) {
-	gcmNonce := make([]byte, 12)
-	streamCipher, err := getStreamCipher(password)
-	if err != nil {
-		return []byte{}, err
-	}
-	return streamCipher.Open(nil, gcmNonce, ciphertext, nil)
 }
