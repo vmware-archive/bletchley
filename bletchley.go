@@ -1,3 +1,4 @@
+// Package bletchley provides high-level functionality for asymmetric encryption and decryption.
 package bletchley
 
 import (
@@ -11,12 +12,13 @@ import (
 	"io"
 )
 
-type Cipher struct {
-	hash   hash.Hash
-	random io.Reader
-}
+var (
+	_hash hash.Hash = sha256.New()
 
-func (c *Cipher) randomBytes(n int) ([]byte, error) {
+	randomReader io.Reader = rand.Reader
+)
+
+func randomBytes(n int) ([]byte, error) {
 	bytes := make([]byte, n)
 	if _, err := rand.Read(bytes); err != nil {
 		return []byte{}, err
@@ -24,13 +26,9 @@ func (c *Cipher) randomBytes(n int) ([]byte, error) {
 	return bytes, nil
 }
 
-func New() *Cipher {
-	return &Cipher{
-		hash:   sha256.New(),
-		random: rand.Reader,
-	}
-}
-
+// EncryptedMessage is the encrypted and authenticated representation of a plaintext message.
+// The consumer of this package should not need to understand or manipulate the fields except for serialization.
+// Decryption requires possession of the private key.
 type EncryptedMessage struct {
 	Nonce        []byte `json:"nonce"`
 	Ciphertext   []byte `json:"ciphertext"`
@@ -50,6 +48,7 @@ func loadAndValidatePEM(rawBytes []byte, expectedType string) ([]byte, error) {
 	return pemBlock.Bytes, nil
 }
 
+// PublicKeyFromPEM loads an RSA public key from raw bytes found in a .pem file
 func PublicKeyFromPEM(rawBytes []byte) (*rsa.PublicKey, error) {
 	keyBytes, err := loadAndValidatePEM(rawBytes, "PUBLIC KEY")
 	if err != nil {
@@ -67,6 +66,7 @@ func PublicKeyFromPEM(rawBytes []byte) (*rsa.PublicKey, error) {
 	return rsaPub, nil
 }
 
+// PrivateKeyFromPEM loads an RSA private key from raw bytes found in a .pem or .key file
 func PrivateKeyFromPEM(rawBytes []byte) (*rsa.PrivateKey, error) {
 	keyBytes, err := loadAndValidatePEM(rawBytes, "RSA PRIVATE KEY")
 	if err != nil {
@@ -81,13 +81,14 @@ func PrivateKeyFromPEM(rawBytes []byte) (*rsa.PrivateKey, error) {
 	return priv, nil
 }
 
-func (c *Cipher) Encrypt(publicKey *rsa.PublicKey, plaintext []byte) (EncryptedMessage, error) {
-	aesKey, err := c.randomBytes(symmetricKeyLength)
+// Encrypt encrypts a given plaintext using the provided public key.
+func Encrypt(publicKey *rsa.PublicKey, plaintext []byte) (EncryptedMessage, error) {
+	aesKey, err := randomBytes(symmetricKeyLength)
 	if err != nil {
 		return EncryptedMessage{}, err
 	}
 
-	nonce, err := c.randomBytes(symmetricNonceLength)
+	nonce, err := randomBytes(symmetricNonceLength)
 	if err != nil {
 		return EncryptedMessage{}, err
 	}
@@ -97,7 +98,7 @@ func (c *Cipher) Encrypt(publicKey *rsa.PublicKey, plaintext []byte) (EncryptedM
 		return EncryptedMessage{}, err
 	}
 
-	encryptedKey, err := rsa.EncryptOAEP(c.hash, c.random, publicKey, aesKey, nil)
+	encryptedKey, err := rsa.EncryptOAEP(_hash, randomReader, publicKey, aesKey, nil)
 	if err != nil {
 		return EncryptedMessage{}, err
 	}
@@ -109,8 +110,10 @@ func (c *Cipher) Encrypt(publicKey *rsa.PublicKey, plaintext []byte) (EncryptedM
 	}, nil
 }
 
-func (c *Cipher) Decrypt(privateKey *rsa.PrivateKey, msg EncryptedMessage) ([]byte, error) {
-	aesKey, err := rsa.DecryptOAEP(c.hash, c.random, privateKey, msg.EncryptedKey, nil)
+// Decrypt decrypts a given EncryptedMessage using the provided private key
+// If the provided key is invalid or the message has been tampered with, Decrypt will return an empty slice and an error.
+func Decrypt(privateKey *rsa.PrivateKey, msg EncryptedMessage) ([]byte, error) {
+	aesKey, err := rsa.DecryptOAEP(_hash, randomReader, privateKey, msg.EncryptedKey, nil)
 	if err != nil {
 		return []byte{}, fmt.Errorf("RSA decryption: " + err.Error())
 	}

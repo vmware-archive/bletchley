@@ -54,15 +54,13 @@ func main() {
 
 	outputString := ""
 
-	cipher := bletchley.New()
-
 	if operation == operationEncrypt {
 		publicKey, err := bletchley.PublicKeyFromPEM(keyBytes)
 		if err != nil {
 			Fatalf(err.Error())
 		}
 
-		encrypted, err := cipher.Encrypt(publicKey, inputData)
+		encrypted, err := bletchley.Encrypt(publicKey, inputData)
 		if err != nil {
 			Fatalf(err.Error())
 		}
@@ -86,7 +84,7 @@ func main() {
 			Fatalf("Expected JSON input: " + err.Error())
 		}
 
-		plaintext, err := cipher.Decrypt(privateKey, encrypted)
+		plaintext, err := bletchley.Decrypt(privateKey, encrypted)
 		if err != nil {
 			Fatalf("Failed to decrypt: " + err.Error())
 		}
