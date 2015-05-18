@@ -33,6 +33,7 @@ func main() {
 	flag.Parse()
 
 	if keyPath == "" {
+		flag.Usage()
 		Fatalf("Specify the path to the key file")
 	}
 
