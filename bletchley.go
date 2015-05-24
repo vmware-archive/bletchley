@@ -1,4 +1,4 @@
-// Package bletchley provides high-level functionality for asymmetric encryption and decryption.
+// Package bletchly is a simple, high-level library for asymmetric encryption and decryption.
 package bletchley
 
 import (
@@ -48,7 +48,7 @@ func loadAndValidatePEM(rawBytes []byte, expectedType string) ([]byte, error) {
 	return pemBlock.Bytes, nil
 }
 
-// PublicKeyFromPEM loads an RSA public key from raw bytes found in a .pem file
+// PublicKeyFromPEM loads an RSA public key from raw bytes found in a .pem file.
 func PublicKeyFromPEM(rawBytes []byte) (*rsa.PublicKey, error) {
 	keyBytes, err := loadAndValidatePEM(rawBytes, "PUBLIC KEY")
 	if err != nil {
@@ -66,7 +66,7 @@ func PublicKeyFromPEM(rawBytes []byte) (*rsa.PublicKey, error) {
 	return rsaPub, nil
 }
 
-// PrivateKeyFromPEM loads an RSA private key from raw bytes found in a .pem or .key file
+// PrivateKeyFromPEM loads an RSA private key from raw bytes found in a .pem or .key file.
 func PrivateKeyFromPEM(rawBytes []byte) (*rsa.PrivateKey, error) {
 	keyBytes, err := loadAndValidatePEM(rawBytes, "RSA PRIVATE KEY")
 	if err != nil {
@@ -110,8 +110,8 @@ func Encrypt(publicKey *rsa.PublicKey, plaintext []byte) (EncryptedMessage, erro
 	}, nil
 }
 
-// Decrypt decrypts a given EncryptedMessage using the provided private key
-// If the provided key is invalid or the message has been tampered with, Decrypt will return an empty slice and an error.
+// Decrypt decrypts a given EncryptedMessage using the provided private key.
+// If the provided key is invalid then Decrypt will return an empty slice and an error.
 func Decrypt(privateKey *rsa.PrivateKey, msg EncryptedMessage) ([]byte, error) {
 	aesKey, err := rsa.DecryptOAEP(_hash, randomReader, privateKey, msg.EncryptedKey, nil)
 	if err != nil {
