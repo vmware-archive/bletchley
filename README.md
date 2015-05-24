@@ -1,4 +1,5 @@
 #Bletchley
+[![Build Status](https://api.travis-ci.org/rosenhouse/bletchley.png?branch=master)](http://travis-ci.org/rosenhouse/bletchley)
 [![GoDoc](https://godoc.org/github.com/rosenhouse/bletchley?status.svg)](https://godoc.org/github.com/rosenhouse/bletchley)
 
 Bletchley is a high-level Go library and command-line tool for asymmetric encryption and decryption.
