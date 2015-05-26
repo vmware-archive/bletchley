@@ -16,9 +16,9 @@ Design non-goals:
 
 
 ## Example using the command-line tool
-1. Compile the binary
+1. Install the command-line binary
   ```
-  go install
+  go install github.com/rosenhouse/bletchley/bletchley
   ```
 
 2. Generate an RSA keypair
@@ -33,14 +33,14 @@ Design non-goals:
 
 4. Encrypt some data using the public key
   ```
-  echo "This is a secret message" | bletchley -o encrypt -k public_key.pem > encrypted.json
+  echo "This is a secret message" | bletchley -o encrypt -public public_key.pem > encrypted.json
   ```
 
 5. Decrypt data using the private key
   ```
-  cat encrypted.json | bletchley -o decrypt -k private_key.pem
+  cat encrypted.json | bletchley -o decrypt -private private_key.pem
   ```
 
 
 ## Example of use as a libary
-See the source code for the CLI tool, located at `bletchley/main.go`
+See the source code for the CLI tool.

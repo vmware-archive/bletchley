@@ -15,33 +15,32 @@ const (
 	operationDecrypt = "decrypt"
 )
 
-func Fatalf(msg string) {
-	os.Stderr.WriteString(msg + "\n")
+var (
+	operation      string
+	privateKeyPath string
+	publicKeyPath  string
+)
+
+func Fatalf(format string, a ...interface{}) {
+	os.Stderr.WriteString(fmt.Sprintf(format, a) + "\n")
 	os.Exit(1)
 }
 
-func main() {
-	var operation string
-	var keyPath string
-
-	flag.StringVar(&operation, "o", "", fmt.Sprintf("operation: '%s' or '%s'", operationEncrypt, operationDecrypt))
-	flag.StringVar(&keyPath, "k", "", "path to public or private key")
-	flag.Parse()
-
+func readKeyBytes(keyType, keyPath string) []byte {
 	if keyPath == "" {
 		flag.Usage()
-		Fatalf("Specify the path to the key file")
+		Fatalf("Expected path to the %s key file", keyType)
 	}
 
 	keyBytes, err := ioutil.ReadFile(keyPath)
 	if err != nil {
-		Fatalf("Error reading key file: " + err.Error())
+		Fatalf("Error reading %s key file: %s", keyType, keyPath)
 	}
 
-	if operation != operationEncrypt && operation != operationDecrypt {
-		Fatalf(fmt.Sprintf("Expected operation to be either '%s' or '%s'", operationEncrypt, operationDecrypt))
-	}
+	return keyBytes
+}
 
+func readInputBytes() []byte {
 	stat, _ := os.Stdin.Stat()
 	if (stat.Mode() & os.ModeCharDevice) != 0 {
 		Fatalf("provide input data on stdin")
@@ -52,9 +51,27 @@ func main() {
 		panic(err)
 	}
 
+	return inputData
+}
+
+func main() {
+	allowedOperations := []string{operationEncrypt, operationDecrypt}
+
+	flag.StringVar(&operation, "o", "",
+		fmt.Sprintf("operation: one of %+v", allowedOperations))
+	flag.StringVar(&privateKeyPath, "private", "", "path to private key")
+	flag.StringVar(&publicKeyPath, "public", "", "path to public key")
+	flag.Parse()
+
+	if operation != operationEncrypt && operation != operationDecrypt {
+		Fatalf(fmt.Sprintf("Expected operation to be one of %+v", allowedOperations))
+	}
 	outputString := ""
 
 	if operation == operationEncrypt {
+		inputData := readInputBytes()
+		keyBytes := readKeyBytes("public", publicKeyPath)
+
 		publicKey, err := bletchley.PublicKeyFromPEM(keyBytes)
 		if err != nil {
 			Fatalf(err.Error())
@@ -73,6 +90,9 @@ func main() {
 		outputString = string(outputBytes)
 
 	} else if operation == operationDecrypt {
+		inputData := readInputBytes()
+		keyBytes := readKeyBytes("private", privateKeyPath)
+
 		privateKey, err := bletchley.PrivateKeyFromPEM(keyBytes)
 		if err != nil {
 			Fatalf(err.Error())
