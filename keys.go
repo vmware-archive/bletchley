@@ -8,8 +8,8 @@ import (
 )
 
 const (
-	PEMHeaderPrivateKey = "RSA PRIVATE KEY"
-	PEMHeaderPublicKey  = "PUBLIC KEY"
+	pemHeaderPrivateKey = "RSA PRIVATE KEY"
+	pemHeaderPublicKey  = "PUBLIC KEY"
 )
 
 func loadAndValidatePEM(rawBytes []byte, expectedType string) ([]byte, error) {
@@ -27,7 +27,7 @@ func loadAndValidatePEM(rawBytes []byte, expectedType string) ([]byte, error) {
 
 // PublicKeyFromPEM loads an RSA public key from raw bytes found in a .pem file.
 func PublicKeyFromPEM(rawBytes []byte) (*rsa.PublicKey, error) {
-	keyBytes, err := loadAndValidatePEM(rawBytes, PEMHeaderPublicKey)
+	keyBytes, err := loadAndValidatePEM(rawBytes, pemHeaderPublicKey)
 	if err != nil {
 		return nil, err
 	}
@@ -45,7 +45,7 @@ func PublicKeyFromPEM(rawBytes []byte) (*rsa.PublicKey, error) {
 
 // PrivateKeyFromPEM loads an RSA private key from raw bytes found in a .pem or .key file.
 func PrivateKeyFromPEM(rawBytes []byte) (*rsa.PrivateKey, error) {
-	keyBytes, err := loadAndValidatePEM(rawBytes, PEMHeaderPrivateKey)
+	keyBytes, err := loadAndValidatePEM(rawBytes, pemHeaderPrivateKey)
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +71,7 @@ func encodePEM(keyBytes []byte, keyType string) []byte {
 func PrivateKeyToPEM(privateKey *rsa.PrivateKey) []byte {
 	keyBytes := x509.MarshalPKCS1PrivateKey(privateKey)
 
-	return encodePEM(keyBytes, PEMHeaderPrivateKey)
+	return encodePEM(keyBytes, pemHeaderPrivateKey)
 }
 
 // PublicKeyToPEM serializes an RSA Public key into PEM format.
@@ -81,7 +81,7 @@ func PublicKeyToPEM(publicKey *rsa.PublicKey) ([]byte, error) {
 		return []byte{}, err
 	}
 
-	return encodePEM(keyBytes, PEMHeaderPublicKey), nil
+	return encodePEM(keyBytes, pemHeaderPublicKey), nil
 }
 
 // Generate creates a 2048-bit RSA key pair.
