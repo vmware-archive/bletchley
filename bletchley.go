@@ -28,7 +28,6 @@ func randomBytes(n int) ([]byte, error) {
 // The consumer of this package should not need to understand or manipulate the fields except for serialization.
 // Decryption requires possession of the private key.
 type EncryptedMessage struct {
-	Nonce        []byte `json:"nonce"`
 	Ciphertext   []byte `json:"ciphertext"`
 	EncryptedKey []byte `json:"encrypted_key"`
 }
@@ -40,12 +39,7 @@ func Encrypt(publicKey *rsa.PublicKey, plaintext []byte) (EncryptedMessage, erro
 		return EncryptedMessage{}, err
 	}
 
-	nonce, err := randomBytes(symmetricNonceLength)
-	if err != nil {
-		return EncryptedMessage{}, err
-	}
-
-	symPayload, err := symmetricEncrypt(aesKey, nonce, plaintext)
+	ciphertext, err := symmetricEncrypt(aesKey, plaintext)
 	if err != nil {
 		return EncryptedMessage{}, err
 	}
@@ -56,8 +50,7 @@ func Encrypt(publicKey *rsa.PublicKey, plaintext []byte) (EncryptedMessage, erro
 	}
 
 	return EncryptedMessage{
-		Nonce:        symPayload.Nonce,
-		Ciphertext:   symPayload.Ciphertext,
+		Ciphertext:   ciphertext,
 		EncryptedKey: encryptedKey,
 	}, nil
 }
@@ -70,7 +63,7 @@ func Decrypt(privateKey *rsa.PrivateKey, msg EncryptedMessage) ([]byte, error) {
 		return []byte{}, fmt.Errorf("RSA decryption: " + err.Error())
 	}
 
-	plaintext, err := symmetricDecrypt(aesKey, gcmPayload{msg.Nonce, msg.Ciphertext})
+	plaintext, err := symmetricDecrypt(aesKey, msg.Ciphertext)
 	if err != nil {
 		return []byte{}, fmt.Errorf("GCM AES decryption: " + err.Error())
 	}
