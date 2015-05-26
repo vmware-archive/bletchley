@@ -11,8 +11,9 @@ import (
 )
 
 const (
-	operationEncrypt = "encrypt"
-	operationDecrypt = "decrypt"
+	operationEncrypt  = "encrypt"
+	operationDecrypt  = "decrypt"
+	operationGenerate = "generate"
 )
 
 var (
@@ -55,7 +56,7 @@ func readInputBytes() []byte {
 }
 
 func main() {
-	allowedOperations := []string{operationEncrypt, operationDecrypt}
+	allowedOperations := []string{operationEncrypt, operationDecrypt, operationGenerate}
 
 	flag.StringVar(&operation, "o", "",
 		fmt.Sprintf("operation: one of %+v", allowedOperations))
@@ -63,10 +64,9 @@ func main() {
 	flag.StringVar(&publicKeyPath, "public", "", "path to public key")
 	flag.Parse()
 
-	if operation != operationEncrypt && operation != operationDecrypt {
-		Fatalf(fmt.Sprintf("Expected operation to be one of %+v", allowedOperations))
+	if operation != operationEncrypt && operation != operationDecrypt && operation != operationGenerate {
+		Fatalf("Expected operation to be one of %s", allowedOperations)
 	}
-	outputString := ""
 
 	if operation == operationEncrypt {
 		inputData := readInputBytes()
@@ -87,7 +87,7 @@ func main() {
 			Fatalf(err.Error())
 		}
 
-		outputString = string(outputBytes)
+		fmt.Print(string(outputBytes))
 
 	} else if operation == operationDecrypt {
 		inputData := readInputBytes()
@@ -109,8 +109,38 @@ func main() {
 			Fatalf("Failed to decrypt: " + err.Error())
 		}
 
-		outputString = string(plaintext)
-	}
+		fmt.Print(string(plaintext))
 
-	fmt.Printf(outputString)
+	} else if operation == operationGenerate {
+
+		privateKey, publicKey, err := bletchley.Generate()
+		if err != nil {
+			Fatalf(err.Error())
+		}
+
+		privateKeyPEM := bletchley.PrivateKeyToPEM(privateKey)
+		publicKeyPEM, err := bletchley.PublicKeyToPEM(publicKey)
+		if err != nil {
+			Fatalf(err.Error())
+		}
+
+		if privateKeyPath == "" {
+			fmt.Print(string(privateKeyPEM))
+			return
+		}
+
+		err = ioutil.WriteFile(privateKeyPath, privateKeyPEM, os.FileMode(0600))
+		if err != nil {
+			Fatalf("Error writing private key file")
+		}
+
+		if publicKeyPath != "" {
+			err = ioutil.WriteFile(publicKeyPath, publicKeyPEM, os.FileMode(0644))
+			if err != nil {
+				Fatalf("Error writing private key file")
+			}
+		}
+
+		return
+	}
 }

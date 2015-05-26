@@ -67,14 +67,14 @@ func encodePEM(keyBytes []byte, keyType string) []byte {
 	return pem.EncodeToMemory(block)
 }
 
-// PrivateKeyToPEM serializes an RSA Private key into PEM format
+// PrivateKeyToPEM serializes an RSA Private key into PEM format.
 func PrivateKeyToPEM(privateKey *rsa.PrivateKey) []byte {
 	keyBytes := x509.MarshalPKCS1PrivateKey(privateKey)
 
 	return encodePEM(keyBytes, PEMHeaderPrivateKey)
 }
 
-// PublicKeyToPEM serializes an RSA Public key into PEM format
+// PublicKeyToPEM serializes an RSA Public key into PEM format.
 func PublicKeyToPEM(publicKey *rsa.PublicKey) ([]byte, error) {
 	keyBytes, err := x509.MarshalPKIXPublicKey(publicKey)
 	if err != nil {
@@ -82,4 +82,15 @@ func PublicKeyToPEM(publicKey *rsa.PublicKey) ([]byte, error) {
 	}
 
 	return encodePEM(keyBytes, PEMHeaderPublicKey), nil
+}
+
+// Generate creates a 2048-bit RSA key pair.
+func Generate() (*rsa.PrivateKey, *rsa.PublicKey, error) {
+	keySize := 2048
+	private, err := rsa.GenerateKey(randomReader, keySize)
+	if err != nil {
+		return nil, nil, err
+	}
+	public := private.Public().(*rsa.PublicKey)
+	return private, public, nil
 }

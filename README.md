@@ -23,20 +23,15 @@ Design non-goals:
 
 2. Generate an RSA keypair
   ```
-  openssl genrsa -out private_key.pem 4096
+  bletchley -o generate -public public_key.pem -private private_key.pem
   ```
 
-3. Extract the public key to a separate file
-  ```
-  openssl rsa -in private_key.pem -pubout -out public_key.pem
-  ```
-
-4. Encrypt some data using the public key
+3. Encrypt some data using the public key
   ```
   echo "This is a secret message" | bletchley -o encrypt -public public_key.pem > encrypted.json
   ```
 
-5. Decrypt data using the private key
+4. Decrypt data using the private key
   ```
   cat encrypted.json | bletchley -o decrypt -private private_key.pem
   ```
