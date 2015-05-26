@@ -58,28 +58,28 @@ func PrivateKeyFromPEM(rawBytes []byte) (*rsa.PrivateKey, error) {
 	return priv, nil
 }
 
-// PrivateKeyToPEM serializes an RSA Private key into PEM format
-func PrivateKeyToPEM(privateKey *rsa.PrivateKey) []byte {
-	keyBytes := x509.MarshalPKCS1PrivateKey(privateKey)
-
+func encodePEM(keyBytes []byte, keyType string) []byte {
 	block := &pem.Block{
-		Type:  PEMHeaderPrivateKey,
+		Type:  keyType,
 		Bytes: keyBytes,
 	}
 
 	return pem.EncodeToMemory(block)
 }
 
+// PrivateKeyToPEM serializes an RSA Private key into PEM format
+func PrivateKeyToPEM(privateKey *rsa.PrivateKey) []byte {
+	keyBytes := x509.MarshalPKCS1PrivateKey(privateKey)
+
+	return encodePEM(keyBytes, PEMHeaderPrivateKey)
+}
+
+// PublicKeyToPEM serializes an RSA Public key into PEM format
 func PublicKeyToPEM(publicKey *rsa.PublicKey) ([]byte, error) {
 	keyBytes, err := x509.MarshalPKIXPublicKey(publicKey)
 	if err != nil {
 		return []byte{}, err
 	}
 
-	block := &pem.Block{
-		Type:  PEMHeaderPublicKey,
-		Bytes: keyBytes,
-	}
-
-	return pem.EncodeToMemory(block), nil
+	return encodePEM(keyBytes, PEMHeaderPublicKey), nil
 }
