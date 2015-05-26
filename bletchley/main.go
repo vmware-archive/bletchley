@@ -20,7 +20,15 @@ var (
 	operation      string
 	privateKeyPath string
 	publicKeyPath  string
+
+	allowedOperations []string = []string{operationEncrypt, operationDecrypt, operationGenerate}
 )
+
+func init() {
+	flag.StringVar(&operation, "o", "", fmt.Sprintf("operation: one of %+v", allowedOperations))
+	flag.StringVar(&privateKeyPath, "private", "", "path to private key")
+	flag.StringVar(&publicKeyPath, "public", "", "path to public key")
+}
 
 func Fatalf(format string, a ...interface{}) {
 	os.Stderr.WriteString(fmt.Sprintf(format, a) + "\n")
@@ -55,71 +63,71 @@ func readInputBytes() []byte {
 	return inputData
 }
 
-func main() {
-	allowedOperations := []string{operationEncrypt, operationDecrypt, operationGenerate}
-
-	flag.StringVar(&operation, "o", "",
-		fmt.Sprintf("operation: one of %+v", allowedOperations))
-	flag.StringVar(&privateKeyPath, "private", "", "path to private key")
-	flag.StringVar(&publicKeyPath, "public", "", "path to public key")
-	flag.Parse()
-
-	if operation != operationEncrypt && operation != operationDecrypt && operation != operationGenerate {
-		Fatalf("Expected operation to be one of %s", allowedOperations)
+func encrypt(plaintext, keyBytes []byte) ([]byte, error) {
+	publicKey, err := bletchley.PublicKeyFromPEM(keyBytes)
+	if err != nil {
+		return []byte{}, err
 	}
 
-	if operation == operationEncrypt {
-		inputData := readInputBytes()
-		keyBytes := readKeyBytes("public", publicKeyPath)
+	encrypted, err := bletchley.Encrypt(publicKey, plaintext)
+	if err != nil {
+		return []byte{}, err
+	}
 
-		publicKey, err := bletchley.PublicKeyFromPEM(keyBytes)
+	return json.Marshal(encrypted)
+}
+
+func decrypt(ciphertext, keyBytes []byte) ([]byte, error) {
+	privateKey, err := bletchley.PrivateKeyFromPEM(keyBytes)
+	if err != nil {
+		return []byte{}, err
+	}
+
+	var encrypted bletchley.EncryptedMessage
+	err = json.Unmarshal(ciphertext, &encrypted)
+	if err != nil {
+		return []byte{}, fmt.Errorf("Expected JSON input: " + err.Error())
+	}
+
+	return bletchley.Decrypt(privateKey, encrypted)
+}
+
+func generate() ([]byte, []byte, error) {
+	privateKey, publicKey, err := bletchley.Generate()
+	if err != nil {
+		return []byte{}, []byte{}, err
+	}
+
+	privateKeyPEM := bletchley.PrivateKeyToPEM(privateKey)
+	publicKeyPEM, err := bletchley.PublicKeyToPEM(publicKey)
+
+	return publicKeyPEM, privateKeyPEM, err
+}
+
+func main() {
+	flag.Parse()
+
+	switch operation {
+	case operationEncrypt:
+		plaintext := readInputBytes()
+		publicKeyBytes := readKeyBytes("public", publicKeyPath)
+		ciphertext, err := encrypt(plaintext, publicKeyBytes)
 		if err != nil {
 			Fatalf(err.Error())
 		}
+		fmt.Print(string(ciphertext))
 
-		encrypted, err := bletchley.Encrypt(publicKey, inputData)
+	case operationDecrypt:
+		ciphertext := readInputBytes()
+		privateKeyBytes := readKeyBytes("private", privateKeyPath)
+		plaintext, err := decrypt(ciphertext, privateKeyBytes)
 		if err != nil {
 			Fatalf(err.Error())
 		}
-
-		outputBytes, err := json.Marshal(encrypted)
-		if err != nil {
-			Fatalf(err.Error())
-		}
-
-		fmt.Print(string(outputBytes))
-
-	} else if operation == operationDecrypt {
-		inputData := readInputBytes()
-		keyBytes := readKeyBytes("private", privateKeyPath)
-
-		privateKey, err := bletchley.PrivateKeyFromPEM(keyBytes)
-		if err != nil {
-			Fatalf(err.Error())
-		}
-
-		var encrypted bletchley.EncryptedMessage
-		err = json.Unmarshal(inputData, &encrypted)
-		if err != nil {
-			Fatalf("Expected JSON input: " + err.Error())
-		}
-
-		plaintext, err := bletchley.Decrypt(privateKey, encrypted)
-		if err != nil {
-			Fatalf("Failed to decrypt: " + err.Error())
-		}
-
 		fmt.Print(string(plaintext))
 
-	} else if operation == operationGenerate {
-
-		privateKey, publicKey, err := bletchley.Generate()
-		if err != nil {
-			Fatalf(err.Error())
-		}
-
-		privateKeyPEM := bletchley.PrivateKeyToPEM(privateKey)
-		publicKeyPEM, err := bletchley.PublicKeyToPEM(publicKey)
+	case operationGenerate:
+		publicKeyPEM, privateKeyPEM, err := generate()
 		if err != nil {
 			Fatalf(err.Error())
 		}
@@ -131,16 +139,17 @@ func main() {
 
 		err = ioutil.WriteFile(privateKeyPath, privateKeyPEM, os.FileMode(0600))
 		if err != nil {
-			Fatalf("Error writing private key file")
+			Fatalf("Error writing private key file: %s", err)
 		}
 
 		if publicKeyPath != "" {
 			err = ioutil.WriteFile(publicKeyPath, publicKeyPEM, os.FileMode(0644))
 			if err != nil {
-				Fatalf("Error writing private key file")
+				Fatalf("Error writing private key file: %s", err)
 			}
 		}
 
-		return
+	default:
+		Fatalf("Expected operation to be one of %s", allowedOperations)
 	}
 }

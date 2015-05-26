@@ -5,7 +5,6 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha256"
-	"fmt"
 	"hash"
 	"io"
 )
@@ -62,13 +61,8 @@ func Encrypt(publicKey *rsa.PublicKey, plaintext []byte) (EncryptedMessage, erro
 func Decrypt(privateKey *rsa.PrivateKey, msg EncryptedMessage) ([]byte, error) {
 	aesKey, err := rsa.DecryptOAEP(_hash, randomReader, privateKey, msg.EncryptedKey, nil)
 	if err != nil {
-		return []byte{}, fmt.Errorf("RSA decryption: " + err.Error())
+		return []byte{}, err
 	}
 
-	plaintext, err := symmetricDecrypt(aesKey, msg.Ciphertext)
-	if err != nil {
-		return []byte{}, fmt.Errorf("GCM AES decryption: " + err.Error())
-	}
-
-	return plaintext, nil
+	return symmetricDecrypt(aesKey, msg.Ciphertext)
 }
