@@ -4,7 +4,7 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 
-	"github.com/rosenhouse/bletchley"
+	"github.com/pivotal-cf-experimental/bletchley"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

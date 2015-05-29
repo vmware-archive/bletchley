@@ -1,6 +1,6 @@
 #Bletchley
-[![Build Status](https://api.travis-ci.org/rosenhouse/bletchley.png?branch=master)](http://travis-ci.org/rosenhouse/bletchley)
-[![GoDoc](https://godoc.org/github.com/rosenhouse/bletchley?status.svg)](https://godoc.org/github.com/rosenhouse/bletchley)
+[![Build Status](https://api.travis-ci.org/pivotal-cf-experimental/bletchley.png?branch=master)](http://travis-ci.org/pivotal-cf-experimental/bletchley)
+[![GoDoc](https://godoc.org/github.com/pivotal-cf-experimental/bletchley?status.svg)](https://godoc.org/github.com/pivotal-cf-experimental/bletchley)
 
 Bletchley is a high-level Go library and command-line tool for asymmetric encryption and decryption.
 
@@ -21,7 +21,7 @@ Design non-goals:
 ## Example using the command-line tool
 1. Install the command-line binary
   ```
-  go install github.com/rosenhouse/bletchley/bletchley
+  go install github.com/pivotal-cf-experimental/bletchley/bletchley
   ```
 
 2. Generate an RSA keypair

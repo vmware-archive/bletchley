@@ -7,7 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/rosenhouse/bletchley"
+	"github.com/pivotal-cf-experimental/bletchley"
 )
 
 const (
