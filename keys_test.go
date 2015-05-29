@@ -51,3 +51,25 @@ var _ = Describe("Serialization and deserialization of asymmetric keys", func() 
 		Expect(reserialized).To(Equal(pemBytes))
 	})
 })
+
+var _ = Describe("Generating keys", func() {
+	It("should not error", func() {
+		private, public, err := bletchley.Generate()
+
+		Expect(private).ToNot(BeNil())
+		Expect(public).ToNot(BeNil())
+		Expect(err).To(BeNil())
+
+	})
+
+	It("should return a public key that is derived from the private key", func() {
+		private, public, _ := bletchley.Generate()
+		publicKey := private.Public().(*rsa.PublicKey)
+		Expect(publicKey).To(Equal(public))
+	})
+
+	It("should return a public key that has the correct length", func() {
+		_, public, _ := bletchley.Generate()
+		Expect(public.N.BitLen()).To(Equal(4096))
+	})
+})

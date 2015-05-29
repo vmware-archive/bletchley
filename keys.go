@@ -84,9 +84,9 @@ func PublicKeyToPEM(publicKey *rsa.PublicKey) ([]byte, error) {
 	return encodePEM(keyBytes, pemHeaderPublicKey), nil
 }
 
-// Generate creates a 2048-bit RSA key pair.
+// Generate creates a 4096-bit RSA key pair.
 func Generate() (*rsa.PrivateKey, *rsa.PublicKey, error) {
-	keySize := 2048
+	keySize := 4096
 	private, err := rsa.GenerateKey(randomReader, keySize)
 	if err != nil {
 		return nil, nil, err
