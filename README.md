@@ -21,7 +21,7 @@ Design non-goals:
 ## Example using the command-line tool
 1. Install the command-line binary
   ```
-  go install github.com/pivotal-cf-experimental/bletchley/bletchley
+  go get -u github.com/pivotal-cf-experimental/bletchley/bletchley
   ```
 
 2. Generate an RSA keypair
