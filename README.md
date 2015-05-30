@@ -24,7 +24,7 @@ Design non-goals:
   go get -u github.com/pivotal-cf-experimental/bletchley/bletchley
   ```
 
-2. Generate an RSA keypair
+2. Generate a keypair
   ```
   bletchley -o generate -public public_key.pem -private private_key.pem
   ```
