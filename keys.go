@@ -10,7 +10,18 @@ import (
 const (
 	pemHeaderPrivateKey = "RSA PRIVATE KEY"
 	pemHeaderPublicKey  = "PUBLIC KEY"
+	keySize             = 4096
 )
+
+// Generate creates a 4096-bit RSA key pair.
+func Generate() (*rsa.PrivateKey, *rsa.PublicKey, error) {
+	private, err := rsa.GenerateKey(randomReader, keySize)
+	if err != nil {
+		return nil, nil, err
+	}
+	public := private.Public().(*rsa.PublicKey)
+	return private, public, nil
+}
 
 func loadAndValidatePEM(rawBytes []byte, expectedType string) ([]byte, error) {
 	pemBlock, _ := pem.Decode(rawBytes)
@@ -82,15 +93,4 @@ func PublicKeyToPEM(publicKey *rsa.PublicKey) ([]byte, error) {
 	}
 
 	return encodePEM(keyBytes, pemHeaderPublicKey), nil
-}
-
-// Generate creates a 4096-bit RSA key pair.
-func Generate() (*rsa.PrivateKey, *rsa.PublicKey, error) {
-	keySize := 4096
-	private, err := rsa.GenerateKey(randomReader, keySize)
-	if err != nil {
-		return nil, nil, err
-	}
-	public := private.Public().(*rsa.PublicKey)
-	return private, public, nil
 }
