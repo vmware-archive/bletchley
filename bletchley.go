@@ -10,8 +10,7 @@ import (
 )
 
 var (
-	_hash hash.Hash = sha256.New()
-
+	_hash        hash.Hash = sha256.New()
 	randomReader io.Reader = rand.Reader
 )
 
