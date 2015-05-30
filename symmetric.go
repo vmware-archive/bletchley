@@ -3,6 +3,7 @@ package bletchley
 import (
 	"crypto/aes"
 	"crypto/cipher"
+	"crypto/rand"
 )
 
 const (
@@ -14,6 +15,14 @@ const (
 // see Section 8.2.1 of NIST Special Publication 800-38D
 // http://csrc.nist.gov/publications/nistpubs/800-38D/SP-800-38D.pdf
 var zeroNonce []byte = make([]byte, symmetricNonceLength)
+
+func generateSymmetricKey() ([]byte, error) {
+	bytes := make([]byte, symmetricKeyLength)
+	if _, err := rand.Read(bytes); err != nil {
+		return []byte{}, err
+	}
+	return bytes, nil
+}
 
 func makeAESGCM(aesKey []byte) (cipher.AEAD, error) {
 	blockCipher, err := aes.NewCipher(aesKey)

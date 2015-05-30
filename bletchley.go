@@ -14,14 +14,6 @@ var (
 	randomReader io.Reader = rand.Reader
 )
 
-func randomBytes(n int) ([]byte, error) {
-	bytes := make([]byte, n)
-	if _, err := rand.Read(bytes); err != nil {
-		return []byte{}, err
-	}
-	return bytes, nil
-}
-
 // EncryptedMessage is an encrypted (but not authenticated) representation of a plaintext message.
 // The consumer of this package should not need to understand or manipulate the fields except for serialization.
 // Decryption requires possession of the private key.
@@ -33,7 +25,7 @@ type EncryptedMessage struct {
 // Encrypt encrypts a given plaintext using the provided public key.
 // The encryption process uses random data. Therefore, this function is not deterministic.
 func Encrypt(publicKey *rsa.PublicKey, plaintext []byte) (EncryptedMessage, error) {
-	aesKey, err := randomBytes(symmetricKeyLength)
+	aesKey, err := generateSymmetricKey()
 	if err != nil {
 		return EncryptedMessage{}, err
 	}
