@@ -2,9 +2,9 @@
 [![Build Status](https://api.travis-ci.org/pivotal-cf-experimental/bletchley.png?branch=master)](http://travis-ci.org/pivotal-cf-experimental/bletchley)
 [![GoDoc](https://godoc.org/github.com/pivotal-cf-experimental/bletchley?status.svg)](https://godoc.org/github.com/pivotal-cf-experimental/bletchley)
 
-Bletchley is a high-level Go library and command-line tool for asymmetric encryption and decryption.
+Bletchley is a simple, high-level Go library and command-line tool for asymmetric encryption and decryption.
 
-It implements a [hybrid cryptosystem](http://en.wikipedia.org/wiki/Hybrid_cryptosystem) using primitives from the Go standard library.
+It implements a basic [hybrid cryptosystem](http://en.wikipedia.org/wiki/Hybrid_cryptosystem) using the Go standard library.
 
 Design goals:
 - Easy to use
