@@ -4,7 +4,7 @@
 
 Bletchley is a simple, high-level Go library and command-line tool for asymmetric encryption and decryption.
 
-It implements a basic [hybrid cryptosystem](http://en.wikipedia.org/wiki/Hybrid_cryptosystem) using the Go standard library.
+It implements a basic [hybrid cryptosystem](http://en.wikipedia.org/wiki/Hybrid_cryptosystem) by [wrapping  functionality](http://en.wikipedia.org/wiki/Facade_pattern) in the Go standard library.
 
 Design goals:
 - Easy to use
