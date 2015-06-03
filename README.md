@@ -98,9 +98,9 @@ you'll see we're using zero bytes for the "nonce" in the symmetric encryption st
 1. We use each symmetric key for exactly one message.  Each key is created from a
 [cryptographically strong pseudo-random generator](https://godoc.org/crypto/rand#pkg-variables),
 used once, asymmetrically encrypted, and never re-used.
-See Section 8.2.1 of [NIST Special Publication 800-38D](http://csrc.nist.gov/publications/nistpubs/800-38D/SP-800-38D.pdf) for details.
+See Section 8.2.1 of [NIST Special Publication 800-38D](http://csrc.nist.gov/publications/nistpubs/800-38D/SP-800-38D.pdf) for details on nonce requirements when the key is one-time-use.
 
-2. We make no authentication assurances (see above), and nonce uniqueness is only required for the authentication guarantees of GCM,
- not for the secrecy guarantees.  This is detailed in Appendix A of
-[NIST Special Publication 800-38D](http://csrc.nist.gov/publications/nistpubs/800-38D/SP-800-38D.pdf).
+2. We make no authentication assurances (see above), but nonce uniqueness is only required for the authentication guarantees of GCM,
+ not for the secrecy guarantees.  This is detailed in Appendix A of the same
+[NIST document](http://csrc.nist.gov/publications/nistpubs/800-38D/SP-800-38D.pdf).
 
