@@ -104,8 +104,8 @@ See Section 8.2.1 of [NIST Special Publication 800-38D](http://csrc.nist.gov/pub
  not for the secrecy guarantees.  This is detailed in Appendix A of the same
 [NIST document](http://csrc.nist.gov/publications/nistpubs/800-38D/SP-800-38D.pdf).
 
-#### Why are you using symmetric cryptography internally?
-Public key encryption can only operate on messages of limited length; the key length is a hard upper bound.
+#### Why use symmetric ciphers internally?
+The math of asymmetric cryptography requires that the message not be longer than the public key.
 Therefore, we implement a [hybrid cryptosystem](http://en.wikipedia.org/wiki/Hybrid_cryptosystem) where arbitrary-length plaintext is
 first symmetrically encrypted using a strong random key, and that key is then asymmetrically encrypted.  This is the standard approach to solving the message length issue.
 
