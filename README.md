@@ -4,7 +4,9 @@
 
 Bletchley is a simple, high-level Go library and command-line tool for asymmetric encryption and decryption.
 
-It implements a basic [hybrid cryptosystem](http://en.wikipedia.org/wiki/Hybrid_cryptosystem) by [wrapping  functionality](http://en.wikipedia.org/wiki/Facade_pattern) in the Go standard library.
+It implements a basic [hybrid cryptosystem](http://en.wikipedia.org/wiki/Hybrid_cryptosystem) by
+[wrapping functionality](http://en.wikipedia.org/wiki/Facade_pattern) in the Go standard library.
+
 
 Design goals:
 - Easy to use
@@ -12,7 +14,7 @@ Design goals:
 - Use standard, open formats
 
 Design non-goals:
-- Authentication of plaintexts
+- **Authentication**
 - Performance
 - Flexibility
 - Determinism
@@ -79,4 +81,26 @@ err = json.Unmarshal(encryptedBytes, &encryptedMessage)
 plaintextBytes, err := bletchley.Decrypt(privateKey, encrypted)
 ```
 
+## Frequently asked questions
+
+### Why no authentication?
+Bletchley **does not authenticate messages**.  You must rely on an external mechanism to prevent or detect tampering of encrypted messages.
+Authentication would require the sender to have a secret, either an asymmetric private key
+for a [digital signature](http://en.wikipedia.org/wiki/Digital_Signature_Algorithm)
+or a symmetric secret for [message authentication](http://en.wikipedia.org/wiki/Message_authentication_code).
+That is out of scope for this project.
+
+
+### Why is the GCM nonce hardcoded to zeros?
+Looking at the code in [`symmetric.go`](https://github.com/pivotal-cf-experimental/bletchley/blob/master/symmetric.go)
+you'll see we're using zero bytes for the "nonce" in the symmetric encryption step.  This is justified for two reasons:
+
+1. We use each symmetric key for exactly one message.  Each key is created from a
+[cryptographically strong pseudo-random generator](https://godoc.org/crypto/rand#pkg-variables),
+used once, asymmetrically encrypted, and never re-used.
+See Section 8.2.1 of [NIST Special Publication 800-38D](http://csrc.nist.gov/publications/nistpubs/800-38D/SP-800-38D.pdf) for details.
+
+2. We make no authentication assurances (see above), and nonce uniqueness is only required for the authentication guarantees of GCM,
+ not for the secrecy guarantees.  This is detailed in Appendix A of
+[NIST Special Publication 800-38D](http://csrc.nist.gov/publications/nistpubs/800-38D/SP-800-38D.pdf).
 

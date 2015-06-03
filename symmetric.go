@@ -11,8 +11,10 @@ const (
 	symmetricKeyLength   = 32
 )
 
-// We are allowed to use an empty nonce because we never re-use keys
-// see Section 8.2.1 of NIST Special Publication 800-38D
+// We're allowed to use a zero nonce for two reasons:
+// 1. We never re-use keys
+// 2. We're not providing any authentication assurances
+// See Section 8.2.1 and Appendix A of NIST Special Publication 800-38D
 // http://csrc.nist.gov/publications/nistpubs/800-38D/SP-800-38D.pdf
 var zeroNonce []byte = make([]byte, symmetricNonceLength)
 
