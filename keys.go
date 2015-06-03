@@ -1,6 +1,7 @@
 package bletchley
 
 import (
+	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
@@ -15,7 +16,7 @@ const (
 
 // Generate creates a 4096-bit RSA key pair.
 func Generate() (*rsa.PrivateKey, *rsa.PublicKey, error) {
-	private, err := rsa.GenerateKey(randomReader, keySize)
+	private, err := rsa.GenerateKey(rand.Reader, keySize)
 	if err != nil {
 		return nil, nil, err
 	}

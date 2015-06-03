@@ -5,10 +5,7 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha256"
-	"io"
 )
-
-var randomReader io.Reader = rand.Reader
 
 // EncryptedMessage is an encrypted (but not authenticated) representation of a plaintext message.
 // The consumer of this package should not need to understand or manipulate the fields except for serialization.
@@ -31,7 +28,7 @@ func Encrypt(publicKey *rsa.PublicKey, plaintext []byte) (EncryptedMessage, erro
 		return EncryptedMessage{}, err
 	}
 
-	encryptedKey, err := rsa.EncryptOAEP(sha256.New(), randomReader, publicKey, aesKey, nil)
+	encryptedKey, err := rsa.EncryptOAEP(sha256.New(), rand.Reader, publicKey, aesKey, nil)
 	if err != nil {
 		return EncryptedMessage{}, err
 	}
@@ -46,7 +43,7 @@ func Encrypt(publicKey *rsa.PublicKey, plaintext []byte) (EncryptedMessage, erro
 // If the provided key is invalid then Decrypt will return an empty slice and an error.
 // Decrypt does not validate the authenticity of the encrypted message.
 func Decrypt(privateKey *rsa.PrivateKey, msg EncryptedMessage) ([]byte, error) {
-	aesKey, err := rsa.DecryptOAEP(sha256.New(), randomReader, privateKey, msg.EncryptedKey, nil)
+	aesKey, err := rsa.DecryptOAEP(sha256.New(), rand.Reader, privateKey, msg.EncryptedKey, nil)
 	if err != nil {
 		return []byte{}, err
 	}
