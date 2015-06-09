@@ -11,8 +11,8 @@ import (
 // The consumer of this package should not need to understand or manipulate the fields except for serialization.
 // Decryption requires possession of the private key.
 type EncryptedMessage struct {
-	Ciphertext   []byte `json:"ciphertext"`
-	EncryptedKey []byte `json:"encrypted_key"`
+	Ciphertext   []byte
+	EncryptedKey []byte
 }
 
 // Encrypt encrypts a given plaintext using the provided public key.
