@@ -30,8 +30,12 @@ func init() {
 	flag.StringVar(&publicKeyPath, "public", "", "path to public key")
 }
 
+func Fatal(msg string) {
+	Fatalf("%s", msg)
+}
+
 func Fatalf(format string, a ...interface{}) {
-	os.Stderr.WriteString(fmt.Sprintf(format, a) + "\n")
+	os.Stderr.WriteString(fmt.Sprintf(format, a...) + "\n")
 	os.Exit(1)
 }
 
@@ -52,7 +56,7 @@ func readKeyBytes(keyType, keyPath string) []byte {
 func readInputBytes() []byte {
 	stat, _ := os.Stdin.Stat()
 	if (stat.Mode() & os.ModeCharDevice) != 0 {
-		Fatalf("provide input data on stdin")
+		Fatal("provide input data on stdin")
 	}
 
 	inputData, err := ioutil.ReadAll(os.Stdin)
@@ -113,7 +117,7 @@ func main() {
 		publicKeyBytes := readKeyBytes("public", publicKeyPath)
 		ciphertext, err := encrypt(plaintext, publicKeyBytes)
 		if err != nil {
-			Fatalf(err.Error())
+			Fatal(err.Error())
 		}
 		fmt.Print(string(ciphertext))
 
@@ -122,14 +126,14 @@ func main() {
 		privateKeyBytes := readKeyBytes("private", privateKeyPath)
 		plaintext, err := decrypt(ciphertext, privateKeyBytes)
 		if err != nil {
-			Fatalf(err.Error())
+			Fatal(err.Error())
 		}
 		fmt.Print(string(plaintext))
 
 	case operationGenerate:
 		publicKeyPEM, privateKeyPEM, err := generate()
 		if err != nil {
-			Fatalf(err.Error())
+			Fatal(err.Error())
 		}
 
 		if privateKeyPath == "" {

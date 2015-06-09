@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"strings"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -26,9 +27,13 @@ var (
 )
 
 func run(arguments ...string) (stdout, stderr string, err error) {
+	return runWithStdin("", arguments...)
+}
+
+func runWithStdin(stdin string, arguments ...string) (stdout, stderr string, err error) {
 	stdoutBytes, stderrBytes := &bytes.Buffer{}, &bytes.Buffer{}
 	cmd := exec.Command(cliBinary, arguments...)
-	cmd.Stdout, cmd.Stderr = stdoutBytes, stderrBytes
+	cmd.Stdout, cmd.Stderr, cmd.Stdin = stdoutBytes, stderrBytes, strings.NewReader(stdin)
 	err = cmd.Run()
 	stdout, stderr = stdoutBytes.String(), stderrBytes.String()
 
