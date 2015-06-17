@@ -62,4 +62,22 @@ var _ = Describe("Encrypt / decrypt cycle", func() {
 		})
 
 	})
+
+	Context("when Encrypt is given a nil public key", func() {
+		It("should return an error", func() {
+			message := []byte("this is a secret message")
+			_, err := bletchley.Encrypt(nil, message)
+
+			Expect(err).To(MatchError("public key must not be nil"))
+		})
+	})
+
+	Context("when Decrypt is given a nil private key", func() {
+		It("should return an error", func() {
+			message := bletchley.EncryptedMessage{}
+			_, err := bletchley.Decrypt(nil, message)
+
+			Expect(err).To(MatchError("private key must not be nil"))
+		})
+	})
 })

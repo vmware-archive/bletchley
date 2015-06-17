@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha256"
+	"errors"
 )
 
 // EncryptedMessage is an encrypted (but not authenticated) representation of a plaintext message.
@@ -18,6 +19,10 @@ type EncryptedMessage struct {
 // Encrypt encrypts a given plaintext using the provided public key.
 // The encryption process uses random data. Therefore, this function is not deterministic.
 func Encrypt(publicKey *rsa.PublicKey, plaintext []byte) (EncryptedMessage, error) {
+	if publicKey == nil {
+		return EncryptedMessage{}, errors.New("public key must not be nil")
+	}
+
 	aesKey, err := generateSymmetricKey()
 	if err != nil {
 		return EncryptedMessage{}, err
@@ -43,6 +48,10 @@ func Encrypt(publicKey *rsa.PublicKey, plaintext []byte) (EncryptedMessage, erro
 // If the provided key is invalid then Decrypt will return an empty slice and an error.
 // Decrypt does not validate the authenticity of the encrypted message.
 func Decrypt(privateKey *rsa.PrivateKey, msg EncryptedMessage) ([]byte, error) {
+	if privateKey == nil {
+		return []byte{}, errors.New("private key must not be nil")
+	}
+
 	aesKey, err := rsa.DecryptOAEP(sha256.New(), rand.Reader, privateKey, msg.EncryptedKey, nil)
 	if err != nil {
 		return []byte{}, err
