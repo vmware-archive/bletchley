@@ -37,8 +37,8 @@ func loadAndValidatePEM(rawBytes []byte, expectedType string) ([]byte, error) {
 	return pemBlock.Bytes, nil
 }
 
-// PublicKeyFromPEM loads an RSA public key from raw bytes found in a .pem file.
-func PublicKeyFromPEM(rawBytes []byte) (*rsa.PublicKey, error) {
+// PEMToPublicKey converts raw bytes found in a .pem file into an RSA public key
+func PEMToPublicKey(rawBytes []byte) (*rsa.PublicKey, error) {
 	keyBytes, err := loadAndValidatePEM(rawBytes, pemHeaderPublicKey)
 	if err != nil {
 		return nil, err
@@ -55,8 +55,8 @@ func PublicKeyFromPEM(rawBytes []byte) (*rsa.PublicKey, error) {
 	return rsaPub, nil
 }
 
-// PrivateKeyFromPEM loads an RSA private key from raw bytes found in a .pem or .key file.
-func PrivateKeyFromPEM(rawBytes []byte) (*rsa.PrivateKey, error) {
+// PEMToPrivateKey converts raw bytes found in a .pem or .key file into an RSA private key
+func PEMToPrivateKey(rawBytes []byte) (*rsa.PrivateKey, error) {
 	keyBytes, err := loadAndValidatePEM(rawBytes, pemHeaderPrivateKey)
 	if err != nil {
 		return nil, err

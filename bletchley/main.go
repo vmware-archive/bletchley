@@ -68,7 +68,7 @@ func readInputBytes() []byte {
 }
 
 func encrypt(plaintext, keyBytes []byte) ([]byte, error) {
-	publicKey, err := bletchley.PublicKeyFromPEM(keyBytes)
+	publicKey, err := bletchley.PEMToPublicKey(keyBytes)
 	if err != nil {
 		return []byte{}, err
 	}
@@ -82,7 +82,7 @@ func encrypt(plaintext, keyBytes []byte) ([]byte, error) {
 }
 
 func decrypt(ciphertext, keyBytes []byte) ([]byte, error) {
-	privateKey, err := bletchley.PrivateKeyFromPEM(keyBytes)
+	privateKey, err := bletchley.PEMToPrivateKey(keyBytes)
 	if err != nil {
 		return []byte{}, err
 	}

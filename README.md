@@ -59,10 +59,10 @@ err = ioutil.WriteFile("public_key.pem", publicKeyPEM, os.FileMode(0644))
 ##### Load keys from disk
 ```go
 privateKeyPEM, err := ioutil.ReadFile("private_key.pem")
-privateKey, err := bletchley.PrivateKeyFromPEM(privateKeyPEM)
+privateKey, err := bletchley.PEMToPrivateKey(privateKeyPEM)
 
 publicKeyPEM, err := ioutil.ReadFile("public_key.pem")
-publicKey, err := bletchley.PublicKeyFromPEM(publicKeyPEM)
+publicKey, err := bletchley.PEMToPublicKey(publicKeyPEM)
 ```
 
 ##### Encrypt some data using the public key

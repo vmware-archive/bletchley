@@ -34,7 +34,7 @@ var _ = Describe("Serialization of asymmetric keys", func() {
 		It("should serialize and deserialize losslessly", func() {
 			pemBytes := bletchley.PrivateKeyToPEM(privateKey)
 
-			Expect(bletchley.PrivateKeyFromPEM(pemBytes)).To(Equal(privateKey))
+			Expect(bletchley.PEMToPrivateKey(pemBytes)).To(Equal(privateKey))
 		})
 	})
 
@@ -45,7 +45,7 @@ var _ = Describe("Serialization of asymmetric keys", func() {
 			pemBytes, err := bletchley.PublicKeyToPEM(publicKey)
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(bletchley.PublicKeyFromPEM(pemBytes)).To(Equal(publicKey))
+			Expect(bletchley.PEMToPublicKey(pemBytes)).To(Equal(publicKey))
 		})
 	})
 })
