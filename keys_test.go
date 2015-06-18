@@ -10,9 +10,11 @@ import (
 	. "github.com/onsi/gomega"
 )
 
+var cipher bletchley.Cipher
+
 var _ = Describe("Generating asymmetric key pairs", func() {
 	It("should return a 4096 bit key pair", func() {
-		private, public, err := bletchley.Generate()
+		private, public, err := cipher.Generate()
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(public).To(Equal(private.Public()))
@@ -32,9 +34,9 @@ var _ = Describe("Serialization of asymmetric keys", func() {
 
 	Describe("private keys", func() {
 		It("should serialize and deserialize losslessly", func() {
-			pemBytes := bletchley.PrivateKeyToPEM(privateKey)
+			pemBytes := cipher.PrivateKeyToPEM(privateKey)
 
-			Expect(bletchley.PEMToPrivateKey(pemBytes)).To(Equal(privateKey))
+			Expect(cipher.PEMToPrivateKey(pemBytes)).To(Equal(privateKey))
 		})
 	})
 
@@ -42,10 +44,10 @@ var _ = Describe("Serialization of asymmetric keys", func() {
 		It("should serialize and deserialize losslessly", func() {
 			publicKey := privateKey.Public().(*rsa.PublicKey)
 
-			pemBytes, err := bletchley.PublicKeyToPEM(publicKey)
+			pemBytes, err := cipher.PublicKeyToPEM(publicKey)
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(bletchley.PEMToPublicKey(pemBytes)).To(Equal(publicKey))
+			Expect(cipher.PEMToPublicKey(pemBytes)).To(Equal(publicKey))
 		})
 	})
 })

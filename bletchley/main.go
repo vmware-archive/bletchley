@@ -17,6 +17,8 @@ const (
 )
 
 var (
+	cipher bletchley.Cipher
+
 	operation      string
 	privateKeyPath string
 	publicKeyPath  string
@@ -68,12 +70,12 @@ func readInputBytes() []byte {
 }
 
 func encrypt(plaintext, keyBytes []byte) ([]byte, error) {
-	publicKey, err := bletchley.PEMToPublicKey(keyBytes)
+	publicKey, err := cipher.PEMToPublicKey(keyBytes)
 	if err != nil {
 		return []byte{}, err
 	}
 
-	encrypted, err := bletchley.Encrypt(publicKey, plaintext)
+	encrypted, err := cipher.Encrypt(publicKey, plaintext)
 	if err != nil {
 		return []byte{}, err
 	}
@@ -82,7 +84,7 @@ func encrypt(plaintext, keyBytes []byte) ([]byte, error) {
 }
 
 func decrypt(ciphertext, keyBytes []byte) ([]byte, error) {
-	privateKey, err := bletchley.PEMToPrivateKey(keyBytes)
+	privateKey, err := cipher.PEMToPrivateKey(keyBytes)
 	if err != nil {
 		return []byte{}, err
 	}
@@ -93,17 +95,17 @@ func decrypt(ciphertext, keyBytes []byte) ([]byte, error) {
 		return []byte{}, fmt.Errorf("Expected JSON input: " + err.Error())
 	}
 
-	return bletchley.Decrypt(privateKey, encrypted)
+	return cipher.Decrypt(privateKey, encrypted)
 }
 
 func generate() ([]byte, []byte, error) {
-	privateKey, publicKey, err := bletchley.Generate()
+	privateKey, publicKey, err := cipher.Generate()
 	if err != nil {
 		return []byte{}, []byte{}, err
 	}
 
-	privateKeyPEM := bletchley.PrivateKeyToPEM(privateKey)
-	publicKeyPEM, err := bletchley.PublicKeyToPEM(publicKey)
+	privateKeyPEM := cipher.PrivateKeyToPEM(privateKey)
+	publicKeyPEM, err := cipher.PublicKeyToPEM(publicKey)
 
 	return publicKeyPEM, privateKeyPEM, err
 }

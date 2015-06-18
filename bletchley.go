@@ -16,9 +16,12 @@ type EncryptedMessage struct {
 	EncryptedKey []byte
 }
 
+// Cipher provides methods for encrypting and decrypting messages, as well as generating, serializing and deserializing keys.
+type Cipher struct{}
+
 // Encrypt encrypts a given plaintext using the provided public key.
 // The encryption process uses random data. Therefore, this function is not deterministic.
-func Encrypt(publicKey *rsa.PublicKey, plaintext []byte) (EncryptedMessage, error) {
+func (c *Cipher) Encrypt(publicKey *rsa.PublicKey, plaintext []byte) (EncryptedMessage, error) {
 	if publicKey == nil {
 		return EncryptedMessage{}, errors.New("public key must not be nil")
 	}
@@ -47,7 +50,7 @@ func Encrypt(publicKey *rsa.PublicKey, plaintext []byte) (EncryptedMessage, erro
 // Decrypt decrypts a given EncryptedMessage using the provided private key.
 // If the provided key is invalid then Decrypt will return an empty slice and an error.
 // Decrypt does not validate the authenticity of the encrypted message.
-func Decrypt(privateKey *rsa.PrivateKey, msg EncryptedMessage) ([]byte, error) {
+func (c *Cipher) Decrypt(privateKey *rsa.PrivateKey, msg EncryptedMessage) ([]byte, error) {
 	if privateKey == nil {
 		return []byte{}, errors.New("private key must not be nil")
 	}

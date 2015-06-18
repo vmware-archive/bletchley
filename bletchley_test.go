@@ -14,6 +14,7 @@ var _ = Describe("Encrypt / decrypt cycle", func() {
 	var (
 		privateKey *rsa.PrivateKey
 		publicKey  *rsa.PublicKey
+		cipher     bletchley.Cipher
 	)
 
 	BeforeEach(func() {
@@ -28,10 +29,10 @@ var _ = Describe("Encrypt / decrypt cycle", func() {
 	It("should encrypt and decrypt without data loss", func() {
 		message := []byte("this is a secret message")
 
-		encrypted, err := bletchley.Encrypt(publicKey, message)
+		encrypted, err := cipher.Encrypt(publicKey, message)
 		Expect(err).NotTo(HaveOccurred())
 
-		decrypted, err := bletchley.Decrypt(privateKey, encrypted)
+		decrypted, err := cipher.Decrypt(privateKey, encrypted)
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(decrypted).To(Equal(message))
@@ -41,10 +42,10 @@ var _ = Describe("Encrypt / decrypt cycle", func() {
 		longMessage := make([]byte, 1024*1024)
 		Expect(rand.Read(longMessage)).To(Equal(len(longMessage)))
 
-		encrypted, err := bletchley.Encrypt(publicKey, longMessage)
+		encrypted, err := cipher.Encrypt(publicKey, longMessage)
 		Expect(err).NotTo(HaveOccurred())
 
-		decrypted, err := bletchley.Decrypt(privateKey, encrypted)
+		decrypted, err := cipher.Decrypt(privateKey, encrypted)
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(decrypted).To(Equal(longMessage))
@@ -57,7 +58,7 @@ var _ = Describe("Encrypt / decrypt cycle", func() {
 			Expect(err).NotTo(HaveOccurred())
 			publicKey = privateKey.Public().(*rsa.PublicKey)
 
-			_, err = bletchley.Encrypt(publicKey, []byte("foo"))
+			_, err = cipher.Encrypt(publicKey, []byte("foo"))
 			Expect(err).To(MatchError(rsa.ErrMessageTooLong))
 		})
 
@@ -66,7 +67,7 @@ var _ = Describe("Encrypt / decrypt cycle", func() {
 	Context("when Encrypt is given a nil public key", func() {
 		It("should return an error", func() {
 			message := []byte("this is a secret message")
-			_, err := bletchley.Encrypt(nil, message)
+			_, err := cipher.Encrypt(nil, message)
 
 			Expect(err).To(MatchError("public key must not be nil"))
 		})
@@ -75,7 +76,7 @@ var _ = Describe("Encrypt / decrypt cycle", func() {
 	Context("when Decrypt is given a nil private key", func() {
 		It("should return an error", func() {
 			message := bletchley.EncryptedMessage{}
-			_, err := bletchley.Decrypt(nil, message)
+			_, err := cipher.Decrypt(nil, message)
 
 			Expect(err).To(MatchError("private key must not be nil"))
 		})

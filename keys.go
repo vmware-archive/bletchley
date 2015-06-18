@@ -15,7 +15,7 @@ const (
 )
 
 // Generate creates a 4096-bit RSA key pair.
-func Generate() (*rsa.PrivateKey, *rsa.PublicKey, error) {
+func (c *Cipher) Generate() (*rsa.PrivateKey, *rsa.PublicKey, error) {
 	private, err := rsa.GenerateKey(rand.Reader, keySize)
 	if err != nil {
 		return nil, nil, err
@@ -38,7 +38,7 @@ func loadAndValidatePEM(rawBytes []byte, expectedType string) ([]byte, error) {
 }
 
 // PEMToPublicKey converts raw bytes found in a .pem file into an RSA public key
-func PEMToPublicKey(rawBytes []byte) (*rsa.PublicKey, error) {
+func (c *Cipher) PEMToPublicKey(rawBytes []byte) (*rsa.PublicKey, error) {
 	keyBytes, err := loadAndValidatePEM(rawBytes, pemHeaderPublicKey)
 	if err != nil {
 		return nil, err
@@ -56,7 +56,7 @@ func PEMToPublicKey(rawBytes []byte) (*rsa.PublicKey, error) {
 }
 
 // PEMToPrivateKey converts raw bytes found in a .pem or .key file into an RSA private key
-func PEMToPrivateKey(rawBytes []byte) (*rsa.PrivateKey, error) {
+func (c *Cipher) PEMToPrivateKey(rawBytes []byte) (*rsa.PrivateKey, error) {
 	keyBytes, err := loadAndValidatePEM(rawBytes, pemHeaderPrivateKey)
 	if err != nil {
 		return nil, err
@@ -80,14 +80,14 @@ func encodePEM(keyBytes []byte, keyType string) []byte {
 }
 
 // PrivateKeyToPEM serializes an RSA Private key into PEM format.
-func PrivateKeyToPEM(privateKey *rsa.PrivateKey) []byte {
+func (c *Cipher) PrivateKeyToPEM(privateKey *rsa.PrivateKey) []byte {
 	keyBytes := x509.MarshalPKCS1PrivateKey(privateKey)
 
 	return encodePEM(keyBytes, pemHeaderPrivateKey)
 }
 
 // PublicKeyToPEM serializes an RSA Public key into PEM format.
-func PublicKeyToPEM(publicKey *rsa.PublicKey) ([]byte, error) {
+func (c *Cipher) PublicKeyToPEM(publicKey *rsa.PublicKey) ([]byte, error) {
 	keyBytes, err := x509.MarshalPKIXPublicKey(publicKey)
 	if err != nil {
 		return []byte{}, err
