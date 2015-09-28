@@ -1,4 +1,4 @@
-// Package bletchly is a simple, high-level library for asymmetric encryption and decryption.
+// Package bletchley is a simple, high-level library for asymmetric encryption and decryption.
 package bletchley
 
 import (
