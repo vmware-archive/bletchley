@@ -1,4 +1,5 @@
-#Bletchley
+# Bletchley
+
 [![Build Status](https://api.travis-ci.org/pivotal-cf-experimental/bletchley.png?branch=master)](http://travis-ci.org/pivotal-cf-experimental/bletchley)
 [![GoDoc](https://godoc.org/github.com/pivotal-cf-experimental/bletchley?status.svg)](https://godoc.org/github.com/pivotal-cf-experimental/bletchley)
 
@@ -44,6 +45,10 @@ cat encrypted.json | bletchley -o decrypt -private private_key.pem
 
 ## Example usage of library
 Look at the [CLI tool](https://github.com/pivotal-cf-experimental/bletchley/blob/master/bletchley/main.go) for a full working example.  Look at the [Godoc](https://godoc.org/github.com/pivotal-cf-experimental/bletchley) for a complete reference.
+
+```go
+import github.com/pivotal-cf-experimental/bletchley
+```
 
 ##### Generate a keypair and save it to disk
 ```go
